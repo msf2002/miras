@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -32,6 +32,24 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
+
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      userMenuRef.current &&
+      !userMenuRef.current.contains(event.target as Node)
+    ) {
+      setUserMenuOpen(false);
+    }
+  }
+  if (userMenuOpen) {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }
+}, [userMenuOpen]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +128,7 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
 
             {/* User */}
             {session?.user ? (
-  <div className="relative">
+  <div className="relative" ref={userMenuRef}>
     <button
       type="button"
       onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -123,22 +141,32 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
       </span>
     </button>
 
-    {/* Backdrop برای بستن وقتی بیرون کلیک شد */}
-    {userMenuOpen && (
-      <div
-        className="fixed inset-0 z-40"
-        onClick={() => setUserMenuOpen(false)}
-      />
-    )}
-
-    {/* Dropdown */}
     <div
       className={cn(
         "absolute left-0 top-full mt-1 w-48 bg-white rounded-card shadow-card-hover border border-warm-gray/10 transition-all duration-200 z-50",
-        userMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        userMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
       )}
     >
       <div className="p-2">
+        <button
+          type="button"
+          onClick={async () => {
+            setUserMenuOpen(false);
+            try {
+              await signOut({ redirect: false });
+            } catch (err) {
+              console.error(err);
+            }
+            window.location.href = "/login";
+          }}
+          className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          خروج
+        </button>
+
+        <hr className="my-1 border-warm-gray/10" />
+
         <Link
           href="/account/profile"
           onClick={() => setUserMenuOpen(false)}
@@ -173,31 +201,18 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
             پنل مدیریت
           </Link>
         )}
-        <hr className="my-1 border-warm-gray/10" />
-        <button
-  type="button"
-  onClick={async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setUserMenuOpen(false);
-    try {
-      await signOut({ redirect: false });
-    } catch (err) {
-      console.error("Signout error:", err);
-    }
-    // hard redirect
-    window.location.href = "/login";
-    window.location.reload();
-  }}
-  className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
->
-  <LogOut className="h-4 w-4" />
-  خروج
-</button>
       </div>
     </div>
   </div>
-)  : (
+) : (
+  <Link
+    href="/login"
+    className="p-2.5 hover:bg-beige rounded-card transition-colors"
+    aria-label="ورود"
+  >
+    <User className="h-5 w-5 text-warm-gray" />
+  </Link>
+)}:(
               <Link
                 href="/login"
                 className="p-2.5 hover:bg-beige rounded-card transition-colors"
