@@ -12,20 +12,24 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: "احراز هویت نشده" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "احراز هویت نشده" },
+        { status: 401 }
+      );
     }
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
     if (!file) {
-      return NextResponse.json({ error: "فایلی آپلود نشده" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "فایلی آپلود نشده" },
+        { status: 400 }
+      );
     }
 
-    // تبدیل به buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // آپلود به Cloudinary
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
@@ -41,15 +45,17 @@ export async function POST(req: NextRequest) {
         .end(buffer);
     });
 
+    // ✅ هم url، هم imageId برمی‌گردونیم تا هر دو حالت فرانت کار کنه
     return NextResponse.json({
       success: true,
       url: result.secure_url,
+      imageId: result.public_id,
       publicId: result.public_id,
     });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "خطا در آپلود فایل" },
+      { success: false, error: "خطا در آپلود فایل" },
       { status: 500 }
     );
   }
