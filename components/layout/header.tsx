@@ -27,7 +27,7 @@ interface HeaderProps {
 }
 
 export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
-
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -110,66 +110,82 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
 
             {/* User */}
             {session?.user ? (
-              <div className="relative group">
-                <Link
-                  href="/account"
-                  className="p-2.5 hover:bg-beige rounded-card transition-colors flex items-center gap-2"
-                  aria-label="حساب کاربری"
-                >
-                  <User className="h-5 w-5 text-warm-gray" />
-                  <span className="hidden md:block text-sm text-warm-gray">
-                    {session.user.name?.split(" ")[0]}
-                  </span>
-                </Link>
-                {/* Dropdown */}
-                <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-card shadow-card-hover border border-warm-gray/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <div className="p-2">
-                    <Link
-                      href="/account/profile"
-                      className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
-                    >
-                      <User className="h-4 w-4" />
-                      پروفایل
-                    </Link>
-                    <Link
-                      href="/account/orders"
-                      className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
-                    >
-                      <ShoppingBag className="h-4 w-4" />
-                      سفارش‌ها
-                    </Link>
-                    <Link
-                      href="/account/wishlist"
-                      className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
-                    >
-                      <Heart className="h-4 w-4" />
-                      علاقه‌مندی‌ها
-                    </Link>
-                    {session.user.role === "ADMIN" && (
-                      <Link
-                        href="/admin"
-                        className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors text-brand-green"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        پنل مدیریت
-                      </Link>
-                    )}
-                    <hr className="my-1 border-warm-gray/10" />
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await signOut({ redirect: false });
-                        window.location.href = "/login";
-                      }}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      خروج
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
+  <div className="relative">
+    <button
+      type="button"
+      onClick={() => setUserMenuOpen(!userMenuOpen)}
+      className="p-2.5 hover:bg-beige rounded-card transition-colors flex items-center gap-2"
+      aria-label="حساب کاربری"
+    >
+      <User className="h-5 w-5 text-warm-gray" />
+      <span className="hidden md:block text-sm text-warm-gray">
+        {session.user.name?.split(" ")[0]}
+      </span>
+    </button>
+
+    {/* Backdrop برای بستن وقتی بیرون کلیک شد */}
+    {userMenuOpen && (
+      <div
+        className="fixed inset-0 z-40"
+        onClick={() => setUserMenuOpen(false)}
+      />
+    )}
+
+    {/* Dropdown */}
+    <div
+      className={cn(
+        "absolute left-0 top-full mt-1 w-48 bg-white rounded-card shadow-card-hover border border-warm-gray/10 transition-all duration-200 z-50",
+        userMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+      )}
+    >
+      <div className="p-2">
+        <Link
+          href="/account/profile"
+          onClick={() => setUserMenuOpen(false)}
+          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
+        >
+          <User className="h-4 w-4" />
+          پروفایل
+        </Link>
+        <Link
+          href="/account/orders"
+          onClick={() => setUserMenuOpen(false)}
+          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
+        >
+          <ShoppingBag className="h-4 w-4" />
+          سفارش‌ها
+        </Link>
+        <Link
+          href="/account/wishlist"
+          onClick={() => setUserMenuOpen(false)}
+          className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors"
+        >
+          <Heart className="h-4 w-4" />
+          علاقه‌مندی‌ها
+        </Link>
+        {session.user.role === "ADMIN" && (
+          <Link
+            href="/admin"
+            onClick={() => setUserMenuOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-beige transition-colors text-brand-green"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            پنل مدیریت
+          </Link>
+        )}
+        <hr className="my-1 border-warm-gray/10" />
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          خروج
+        </button>
+      </div>
+    </div>
+  </div>
+)  : (
               <Link
                 href="/login"
                 className="p-2.5 hover:bg-beige rounded-card transition-colors"
