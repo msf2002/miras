@@ -175,13 +175,25 @@ export function Header({ session, cartItemCount, logoUrl }: HeaderProps) {
         )}
         <hr className="my-1 border-warm-gray/10" />
         <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          خروج
-        </button>
+  type="button"
+  onClick={async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setUserMenuOpen(false);
+    try {
+      await signOut({ redirect: false });
+    } catch (err) {
+      console.error("Signout error:", err);
+    }
+    // hard redirect
+    window.location.href = "/login";
+    window.location.reload();
+  }}
+  className="flex w-full items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+>
+  <LogOut className="h-4 w-4" />
+  خروج
+</button>
       </div>
     </div>
   </div>
